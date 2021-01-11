@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.harvest.core_base">
+
+    <application>
+        <provider
+            android:authorities="com.core_base.context.provider"
+            android:name=".provider.ContextProvider"
+            android:exported="false"/>
+    </application>
+</manifest>
