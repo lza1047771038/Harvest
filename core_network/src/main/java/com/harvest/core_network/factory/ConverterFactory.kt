@@ -9,7 +9,7 @@ import retrofit2.Retrofit
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 
-class ConverterFactory : Converter.Factory {
+class ConverterFactory private constructor() : Converter.Factory() {
 
     companion object{
         @JvmStatic
@@ -18,8 +18,6 @@ class ConverterFactory : Converter.Factory {
         }
     }
 
-
-    private constructor():super()
 
     override fun responseBodyConverter(
         type: Type,
@@ -44,6 +42,6 @@ class GsonConverter : Converter<ResponseBody, ApiResult<JSONObject>> {
         val jsonObject = JSONObject(value.string())
         val code = jsonObject.optInt("code")
         val message = jsonObject.optString("message")
-        return ApiResult<JSONObject>(code = code, message = message, data = jsonObject)
+        return ApiResult(code = code, message = message, data = jsonObject)
     }
 }
