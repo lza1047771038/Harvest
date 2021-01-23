@@ -11,10 +11,10 @@ import com.harvest.core_base.service.ServiceFacade
 
 class DBInstance {
     companion object {
-        const val dbName: String = "fileDB"
 
         @JvmStatic
-        fun <T> getInstance(clazz: Class<T>): T where T : RoomDatabase {
+        @Synchronized
+        fun <T> getInstance(clazz: Class<T>, dbName: String): T where T : RoomDatabase {
             var dbService = ServiceFacade.getInstance().get(clazz)
             if (dbService == null) {
                 val context =
@@ -27,14 +27,17 @@ class DBInstance {
         }
 
         @JvmStatic
-        fun getAppDatabase(): AppDatabase {
-            return getInstance(AppDatabase::class.java)
+        fun getAppDatabase(): CommonDatabase {
+            return getInstance(CommonDatabase::class.java, CommonDatabase.dbName)
         }
     }
 }
 
 @Database(entities = [CookieCache::class], version = 1, exportSchema = false)
-abstract class AppDatabase : RoomDatabase() {
+abstract class CommonDatabase : RoomDatabase() {
+    companion object {
+        const val dbName: String = "CommonDataBase"
+    }
 
     abstract val cookieDao: ICookieDao
 }
