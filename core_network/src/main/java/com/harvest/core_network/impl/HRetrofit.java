@@ -1,6 +1,8 @@
 package com.harvest.core_network.impl;
 
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.harvest.core_base.database.bean.CookieCache;
 import com.harvest.core_base.database.instance.DBInstance;
@@ -14,10 +16,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import kotlin.Unit;
-import kotlin.coroutines.Continuation;
-import kotlin.coroutines.CoroutineContext;
-import kotlinx.coroutines.Dispatchers;
 import okhttp3.Cache;
 import okhttp3.CacheControl;
 import okhttp3.Cookie;
@@ -34,8 +32,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class HRetrofit {
 
-    private static final File cacheDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "cache");
     private static HRetrofit mInstance = null;
+    private static final File cacheDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "cache");
+
 
     public static HRetrofit getInstance() {
         if (mInstance == null) {
@@ -51,6 +50,7 @@ public class HRetrofit {
     private final Retrofit.Builder retrofitBuilder;
     private final OkHttpClient okHttpClient;
     private final Retrofit retrofit;
+    private final Handler mHandler = new Handler(Looper.getMainLooper());
 
     HRetrofit() {
         okHttpClient = configClient();
@@ -62,11 +62,20 @@ public class HRetrofit {
         return retrofit;
     }
 
+    public OkHttpClient getOkHttpClient() {
+        return okHttpClient;
+    }
+
+    public Handler getMainHandler() {
+        return mHandler;
+    }
+
     private Retrofit.Builder configBuilder() {
-        return new Retrofit.Builder().baseUrl(Configurations.domainUrl)
+        return new Retrofit.Builder()
+                .client(okHttpClient)
+                .baseUrl(Configurations.domainUrl)
                 .addConverterFactory(ConverterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(okHttpClient);
+                .addConverterFactory(GsonConverterFactory.create());
     }
 
     private OkHttpClient configClient() {
@@ -74,17 +83,16 @@ public class HRetrofit {
                 .callTimeout(5000, TimeUnit.MILLISECONDS)
                 .connectTimeout(1000, TimeUnit.MILLISECONDS)
                 .cookieJar(new HCookieJar())
-                .addInterceptor(new CacheInterceptor())
                 .cache(new Cache(cacheDir, 50 * 1024 * 1024))
                 .readTimeout(2000, TimeUnit.MILLISECONDS)
+                .addNetworkInterceptor(new CacheInterceptor())
+                .addInterceptor(new CacheInterceptor())
                 .build();
     }
 }
 
 interface Configurations {
-    String domainUrl = "";
-    String appKey = "";
-    String appId = "";
+    String domainUrl = "https://api.weibo.com/";
 }
 
 class HCookieJar implements CookieJar {
@@ -112,8 +120,7 @@ class CacheInterceptor implements Interceptor {
         Request request = chain.request();
         Request.Builder newBuilder = request.newBuilder();
         boolean isNetworkConnected = NetworkStatusUtils.getInstance().isNetworkConnected();
-        boolean isNetworkEnable = NetworkStatusUtils.getInstance().isNetworkEnable();
-        if (!isNetworkConnected || !isNetworkEnable) {
+        if (!isNetworkConnected) {
             newBuilder.cacheControl(CacheControl.FORCE_CACHE);
         }
         try {
@@ -124,7 +131,7 @@ class CacheInterceptor implements Interceptor {
                     .body(ResponseBody.create(null, "{}"))
                     .code(200)
                     .protocol(Protocol.H2_PRIOR_KNOWLEDGE)
-                    .request(newBuilder.cacheControl(CacheControl.FORCE_CACHE).build())
+                    .request(request.newBuilder().build())
                     .message(e.getMessage())
                     .build();
         }
