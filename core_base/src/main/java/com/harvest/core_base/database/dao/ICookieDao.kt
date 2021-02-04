@@ -13,5 +13,5 @@ interface ICookieDao {
     fun getCookies(httpUrl: String): List<CookieCache>
 
     @Query("delete from cookies where targetUrl = :httpUrl")
-    fun deleteCookies(httpUrl: String): Int
+    fun deleteCookies(httpUrl: String)
 }

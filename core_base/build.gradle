@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'kotlin-android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -41,7 +42,7 @@ dependencies {
     implementation 'androidx.core:core-ktx:1.3.2'
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
@@ -59,10 +60,11 @@ dependencies {
 
     api "androidx.media:media:$rootProject.androidxMediaVersion"
 
-    api "android.arch.persistence.room:runtime:$rootProject.roomDataBaseVersion"
-    annotationProcessor "android.arch.persistence.room:compiler:$rootProject.roomDataBaseVersion"
+    api "androidx.room:room-ktx:$rootProject.roomDataBaseVersion"
+    api "androidx.room:room-runtime:$rootProject.roomDataBaseVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomDataBaseVersion"
 
-    api "androidx.lifecycle:lifecycle-viewmodel-ktx:$rootProject.viewModelVersion"
+    api "androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.0-beta01"
 
     api "android.arch.lifecycle:extensions:1.1.1"
     api "android.arch.lifecycle:common-java8:1.1.1"
@@ -70,6 +72,18 @@ dependencies {
 
     api "androidx.paging:paging-runtime-ktx:$rootProject.pagingRuntimeVersion"
 
+    api "com.google.android:flexbox:$rootProject.flexBoxVersion"
+
     api 'com.cjj.materialrefeshlayout:library:1.3.0'
 
+    api "androidx.paging:paging-runtime-ktx:3.0.0-alpha10"
+
+    api 'com.bm.photoview:library:1.4.1'
+
+    api 'com.google.android.material:material:1.2.1'
+
+    // Glide dependencies
+    api "com.github.bumptech.glide:glide:4.11.0"
+    api 'jp.wasabeef:glide-transformations:4.1.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
 }

@@ -1,5 +1,9 @@
-package com.open.core_base.fragment
+package com.harvest.core_base.fragment
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -8,8 +12,16 @@ import androidx.fragment.app.Fragment
 import com.harvest.core_base.coroutine.launch
 
 abstract class CommonFragment : Fragment() {
+
     private var firstIn = true
+
     private var layoutResLoaded: Boolean = false
+
+    private val broadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            globalBroadcast(intent)
+        }
+    }
 
     protected open fun getLayoutId(): Int = 0
 
@@ -37,6 +49,16 @@ abstract class CommonFragment : Fragment() {
         return view
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+        val intentFilter = IntentFilter()
+        initIntentFilter(intentFilter)
+        activity?.registerReceiver(broadcastReceiver, intentFilter)
+
+
+        super.onViewCreated(view, savedInstanceState)
+    }
+
     override fun onStart() {
         super.onStart()
         if (firstIn) {
@@ -48,7 +70,16 @@ abstract class CommonFragment : Fragment() {
         }
     }
 
+    protected open fun initIntentFilter(filter: IntentFilter) {}
+
+    protected open fun globalBroadcast(intent: Intent?) {}
+
     protected open suspend fun loadInitial() {}
 
     protected open suspend fun loadData() {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        activity?.unregisterReceiver(broadcastReceiver)
+    }
 }

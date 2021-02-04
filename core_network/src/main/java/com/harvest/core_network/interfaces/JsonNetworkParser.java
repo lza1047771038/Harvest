@@ -1,4 +1,4 @@
-package com.harvest.core_network.impl;
+package com.harvest.core_network.interfaces;
 
 import org.json.JSONObject;
 

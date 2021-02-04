@@ -28,10 +28,10 @@ task clean(type: Delete) {
 ext{
     applicationId = "com.harvest.harvestwork"
 
-    buildToolsVersion = "29.0.3"
-    compileSdkVersion = 29
+    buildToolsVersion = "28.0.3"
+    compileSdkVersion = 28
     minSdkVersion=23
-    targetSdkVersion = 1
+    targetSdkVersion = 28
     versionCode = 1
     versionName = "1.0"
     frescoVersion = "1.5.0"
@@ -39,8 +39,9 @@ ext{
     kotlinCoroutineVersion = "1.4.1"
     retrofitVersion = "2.9.0"
     androidxMediaVersion = "1.2.1"
-    roomDataBaseVersion = "1.1.1"
+    roomDataBaseVersion = "2.3.0-alpha03"
     lifecycleVersion = "2.3.0-beta01"
     viewModelVersion = "2.3.0-beta01"
-    pagingRuntimeVersion = "3.0.0-alpha09"
+    pagingRuntimeVersion = "3.0.0-alpha10"
+    flexBoxVersion = "1.1.1"
 }

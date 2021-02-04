@@ -1,6 +1,7 @@
 package com.harvest.core_network.factory
 
-import com.google.gson.JsonObject
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.harvest.core_network.wrapper.ApiResult
 import okhttp3.ResponseBody
 import org.json.JSONObject
@@ -11,9 +12,9 @@ import java.lang.reflect.Type
 
 class ConverterFactory private constructor() : Converter.Factory() {
 
-    companion object{
+    companion object {
         @JvmStatic
-        fun create():ConverterFactory{
+        fun create(): ConverterFactory {
             return ConverterFactory()
         }
     }
@@ -28,8 +29,10 @@ class ConverterFactory private constructor() : Converter.Factory() {
             val rawType = type.rawType
             if (rawType == ApiResult::class.java) {
                 val actualTypes = type.actualTypeArguments
-                if (actualTypes.size == 1 && actualTypes[0] === JSONObject::class.java) {
-                    return GsonConverter()
+                if (actualTypes.size == 1 && actualTypes[0] == JSONObject::class.java) {
+                    return JsonObjectConverter()
+                } else if (actualTypes.size == 1) {
+                    return GsonConverter(actualTypes[0])
                 }
             }
         }
@@ -37,11 +40,21 @@ class ConverterFactory private constructor() : Converter.Factory() {
     }
 }
 
-class GsonConverter : Converter<ResponseBody, ApiResult<JSONObject>> {
-    override fun convert(value: ResponseBody): ApiResult<JSONObject>? {
-        val jsonObject = JSONObject(value.string())
+class JsonObjectConverter : Converter<ResponseBody, ApiResult<JSONObject>> {
+    override fun convert(value: ResponseBody): ApiResult<JSONObject> {
+        val string = value.string()
+        val jsonObject = JSONObject(string)
         val code = jsonObject.optInt("code")
         val message = jsonObject.optString("message")
-        return ApiResult(code = code, message = message, data = jsonObject)
+        return ApiResult<JSONObject>(code = code, message = message, data = jsonObject)
+    }
+}
+
+class GsonConverter(val type: Type) : Converter<ResponseBody, ApiResult<Any>> {
+    private val gson = Gson()
+    override fun convert(value: ResponseBody): ApiResult<Any> {
+        val string = value.string()
+        val obj = gson.fromJson<Any>(string, type)
+        return ApiResult<Any>(data = obj)
     }
 }

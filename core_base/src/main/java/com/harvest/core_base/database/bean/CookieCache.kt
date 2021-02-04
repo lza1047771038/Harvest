@@ -2,11 +2,16 @@ package com.harvest.core_base.database.bean
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
+import androidx.room.PrimaryKey
 import okhttp3.Cookie
 import okhttp3.HttpUrl
 
 @Entity(tableName = "cookies")
 class CookieCache {
+
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
+
     @ColumnInfo
     var targetUrl: String? = null
 

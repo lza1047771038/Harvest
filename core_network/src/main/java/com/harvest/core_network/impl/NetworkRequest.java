@@ -1,5 +1,10 @@
 package com.harvest.core_network.impl;
 
+import androidx.annotation.NonNull;
+
+import com.harvest.core_network.interfaces.ErrorNotifier;
+import com.harvest.core_network.interfaces.JsonNetworkParser;
+import com.harvest.core_network.interfaces.OnPreCheckListener;
 import com.open.core_network.utils.NetworkStatusUtils;
 
 import org.json.JSONObject;
@@ -15,23 +20,27 @@ import okhttp3.ResponseBody;
 
 public class NetworkRequest {
 
-    private String url = null;
+    @NonNull
+    private final String domain;
+    private String api;
     private Map<Object, Object> map = null;
     private ErrorNotifier errorNotifier = null;
+    private OnPreCheckListener preCheckListener = null;
     private boolean forceLocalCache = false;
     private boolean doGet = false;
     private boolean doPost = false;
 
-    NetworkRequest(String url) {
-        this.url = url;
+    NetworkRequest(@NonNull String domain, String api) {
+        this.domain = domain;
+        this.api = api;
     }
 
-    public String getUrl() {
-        return url;
+    public String getApi() {
+        return api;
     }
 
-    public NetworkRequest setUrl(String url) {
-        this.url = url;
+    public NetworkRequest setApi(String api) {
+        this.api = api;
         return this;
     }
 
@@ -53,6 +62,11 @@ public class NetworkRequest {
     public NetworkRequest doPost() {
         doPost = true;
         doGet = false;
+        return this;
+    }
+
+    public NetworkRequest setPreCheckListener(OnPreCheckListener preCheckListener) {
+        this.preCheckListener = preCheckListener;
         return this;
     }
 
@@ -90,41 +104,13 @@ public class NetworkRequest {
             doGet();
         }
 
-        final FormBody.Builder formBody = new FormBody.Builder();
-
         final boolean isNetworkEnable = NetworkStatusUtils.getInstance().isNetworkConnected();
 
-        final String domain = Configurations.domainUrl;
         Request request;
-        final Map<Object, Object> map = getMap();
         if (doGet) {
-            final StringBuilder stringBuilder = new StringBuilder();
-            if (!map.isEmpty()) {
-                stringBuilder.append("?");
-                for (Object key : map.keySet()) {
-                    final Object value = map.get(key);
-                    if (value != null) {
-                        stringBuilder.append(key.toString()).append("=").append(value.toString()).append("&");
-                    }
-                }
-            }
-            request = new Request.Builder()
-                    .url(domain + getUrl() + stringBuilder.toString())
-                    .get()
-                    .cacheControl((isForceLocalCache() || !isNetworkEnable) ? CacheControl.FORCE_CACHE : CacheControl.FORCE_NETWORK)
-                    .build();
+            request = obtainGetRequest(domain, isNetworkEnable);
         } else {
-            for (Object key : map.keySet()) {
-                final Object value = map.get(key);
-                if (value != null) {
-                    formBody.add(key.toString(), value.toString());
-                }
-            }
-            request = new Request.Builder()
-                    .url(domain + getUrl())
-                    .post(formBody.build())
-                    .cacheControl((isForceLocalCache() || !isNetworkEnable) ? CacheControl.FORCE_CACHE : CacheControl.FORCE_NETWORK)
-                    .build();
+            request = obtainPostRequest(domain, isNetworkEnable);
         }
         try {
             final Response response = HRetrofit.getInstance().getOkHttpClient().newCall(request).execute();
@@ -132,7 +118,10 @@ public class NetworkRequest {
             if (responseBody != null) {
                 final String responseString = responseBody.string();
                 final JSONObject jsonObject = new JSONObject(responseString);
-                return callback.convert(jsonObject);
+                boolean isPreCheckValid = (preCheckListener == null || preCheckListener.isValid(jsonObject));
+                if (isPreCheckValid) {
+                    return callback.convert(jsonObject);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,6 +131,42 @@ public class NetworkRequest {
             }
         }
         return null;
+    }
+
+
+    private final Request obtainGetRequest(String domain, boolean isNetworkEnable) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        if (!map.isEmpty()) {
+            stringBuilder.append("?");
+            for (Object key : map.keySet()) {
+                final Object value = map.get(key);
+                if (value != null) {
+                    stringBuilder.append(key.toString()).append("=").append(value.toString()).append("&");
+                }
+            }
+        }
+        return new Request.Builder()
+                .url(domain + getApi() + stringBuilder.toString())
+                .get()
+                .cacheControl((isForceLocalCache() || !isNetworkEnable) ? CacheControl.FORCE_CACHE : CacheControl.FORCE_NETWORK)
+                .build();
+
+    }
+
+    private final Request obtainPostRequest(String domain, boolean isNetworkEnable) {
+        final FormBody.Builder formBody = new FormBody.Builder();
+
+        for (Object key : map.keySet()) {
+            final Object value = map.get(key);
+            if (value != null) {
+                formBody.add(key.toString(), value.toString());
+            }
+        }
+        return new Request.Builder()
+                .url(domain + getApi())
+                .post(formBody.build())
+                .cacheControl((isForceLocalCache() || !isNetworkEnable) ? CacheControl.FORCE_CACHE : CacheControl.FORCE_NETWORK)
+                .build();
     }
 }
 

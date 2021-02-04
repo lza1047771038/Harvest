@@ -1,6 +1,5 @@
 package com.harvest.core_base.database.instance
 
-import android.app.Service
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase

@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'kotlin-kapt'
+    id 'kotlin-android-extensions'
 }
 
 android {
@@ -30,11 +32,21 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
-    dataBinding {
+    defaultConfig {
+        ndk {
+            abiFilters 'armeabi' //, 'armeabi-v7a','arm64-v8a'
+        }
+    }
+    dataBinding{
         enabled = true
     }
 }
 
+repositories {
+    flatDir {
+        dirs 'lib'
+    }
+}
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -49,4 +61,13 @@ dependencies {
     api project(":core_base")
     api project(":core_image")
     api project(":core_network")
+
+    api "androidx.room:room-ktx:$rootProject.roomDataBaseVersion"
+    api "androidx.room:room-runtime:$rootProject.roomDataBaseVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomDataBaseVersion"
+
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.3'
+    releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
+    // Optional, if you use support library fragments:
+    debugImplementation 'com.squareup.leakcanary:leakcanary-support-fragment:1.6.1'
 }
