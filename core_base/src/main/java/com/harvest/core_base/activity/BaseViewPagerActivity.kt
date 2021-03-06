@@ -14,7 +14,7 @@ abstract class BaseViewPagerActivity<M, V : View> : CommonActivity(),
     protected var root: View? = null
     private var adapter: ViewPagerAdapter<M, V>? = null
 
-    override fun getRootView(): View {
+    override fun obtainLayoutRootView(): View {
         if (root == null) {
             val viewPager = ViewPager(this)
             val params = ViewGroup.LayoutParams(

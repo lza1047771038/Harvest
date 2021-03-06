@@ -6,7 +6,7 @@ import com.harvest.core_base.service.ServiceFacade;
 import com.harvest.core_image.impl.ImageImpl;
 import com.harvest.core_image.impl.ImageLoaderImpl;
 import com.harvest.core_image_interface.interfaces.IImage;
-import com.open.core_image_interface.interfaces.IImageLoader;
+import com.harvest.core_image_interface.interfaces.IImageLoader;
 
 public class AppStartUtils {
 

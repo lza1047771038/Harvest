@@ -11,7 +11,7 @@ abstract class CommonBindingActivity<T : ViewDataBinding> : CommonActivity() {
 
     protected fun requireBinding(): T = binding!!
 
-    override fun getRootView(): View? {
+    override fun obtainLayoutRootView(): View? {
         binding = initialBinding()
         binding?.lifecycleOwner = this
         return binding?.root

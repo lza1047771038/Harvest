@@ -18,7 +18,7 @@ abstract class AbsListActivity : CommonActivity() {
     private val isRefreshing: MutableLiveData<Boolean> by lazy {
         val liveData = MutableLiveData<Boolean>()
         liveData.observe(this@AbsListActivity) {
-            val rootView = this@AbsListActivity.getRootView()
+            val rootView = this@AbsListActivity.obtainLayoutRootView()
             if (rootView is SwipeRefreshLayout) {
                 rootView.isRefreshing = it
             }
@@ -34,7 +34,7 @@ abstract class AbsListActivity : CommonActivity() {
         this.isRefreshing.postValue(isRefreshing)
     }
 
-    override fun getRootView(): View? {
+    override fun obtainLayoutRootView(): View? {
         if (rootView == null) {
             val swipeRefreshLayout = SwipeRefreshLayout(this)
             val layoutParams = ViewGroup.LayoutParams(
@@ -59,8 +59,6 @@ abstract class AbsListActivity : CommonActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(getRootView())
-
         initRecyclerView(recyclerView!!)
         adapter = initAdapter()
         recyclerView?.adapter = adapter

@@ -5,17 +5,20 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.GlideBuilder
 import com.bumptech.glide.RequestBuilder
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.FutureTarget
+import com.bumptech.glide.request.RequestListener
+import com.bumptech.glide.request.target.Target
 import com.facebook.drawee.drawable.ScalingUtils
 import com.harvest.core_image.R
 import com.harvest.core_image.utils.GlideRoundTransform
+import com.harvest.core_image_interface.interfaces.DrawableLoadListener
 import com.harvest.core_image_interface.interfaces.IImage
-import com.open.core_image_interface.interfaces.IImageLoader
-import java.util.concurrent.FutureTask
+import com.harvest.core_image_interface.interfaces.IImageLoader
 
 class ImageLoaderImpl : IImageLoader {
 
@@ -61,6 +64,38 @@ class ImageLoaderImpl : IImageLoader {
         return build(context)
             .load(id)
             .transform(GlideRoundTransform(radius.toInt()))
+            .submit()
+    }
+
+    override fun loadAsync(url: String?, context: Context, listener: DrawableLoadListener) {
+        build(context)
+            .load(url)
+            .listener(object : RequestListener<Drawable> {
+                override fun onLoadFailed(
+                    e: GlideException?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    listener.onLoadFailed(e)
+                    return true
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable?,
+                    model: Any?,
+                    target: Target<Drawable>?,
+                    dataSource: DataSource?,
+                    isFirstResource: Boolean
+                ): Boolean {
+                    if (resource != null) {
+                        listener.onLoadSuccess(resource)
+                        return true
+                    }
+                    return false
+                }
+
+            })
             .submit()
     }
 

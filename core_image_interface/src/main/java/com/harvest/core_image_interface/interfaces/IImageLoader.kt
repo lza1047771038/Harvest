@@ -1,11 +1,10 @@
-package com.open.core_image_interface.interfaces
+package com.harvest.core_image_interface.interfaces
 
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import com.bumptech.glide.request.FutureTarget
 import com.facebook.drawee.drawable.ScalingUtils
-import java.util.concurrent.FutureTask
 
 interface IImageLoader {
     fun load(url: String?, view: ImageView)
@@ -16,4 +15,6 @@ interface IImageLoader {
 
     fun get(url: String?, context: Context, radius: Float): FutureTarget<Drawable>
     fun get(id: Int?, context: Context, radius: Float): FutureTarget<Drawable>
+
+    fun loadAsync(url:String?, context: Context, listener: DrawableLoadListener)
 }

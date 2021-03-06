@@ -8,10 +8,11 @@ import android.os.Build
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.door.core_base.interfaces.IActivityWrapper
 
-abstract class CommonActivity : AppCompatActivity() {
+abstract class CommonActivity : AppCompatActivity(), IActivityWrapper {
 
     private var layoutInflated: Boolean = false
 
@@ -24,24 +25,24 @@ abstract class CommonActivity : AppCompatActivity() {
     /**
      * @return layout resource id, 0 for no layout display
      */
-    protected open fun getLayoutId(): Int = 0
+    override fun obtainLayoutId(): Int = 0
 
-    protected open fun getRootView(): View? = null
-
+    override fun obtainLayoutRootView(): View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        onApplyTheme()
+
         super.onCreate(savedInstanceState)
 
-        configUIThemes()
-
-        val layoutId = getLayoutId()
+        val layoutId = obtainLayoutId()
         if (layoutId != 0) {
             layoutInflated = true
             setContentView(layoutId)
         }
 
         if (!layoutInflated) {
-            val rootView = getRootView()
+            val rootView = obtainLayoutRootView()
             if (rootView != null) {
                 layoutInflated = true
                 setContentView(rootView)
@@ -50,24 +51,31 @@ abstract class CommonActivity : AppCompatActivity() {
 
         val intentFilter = IntentFilter()
         initIntentFilter(intentFilter)
-        registerReceiver(broadcastReceiver, intentFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiver, intentFilter)
 
         lifecycleScope.launchWhenCreated {
             initViews()
+            initViewModel()
             loadData()
         }
     }
 
-    protected open fun configUIThemes() {
+    override fun onApplyTheme() {
         val decorView = window.decorView
-        val uiVisibility = decorView.systemUiVisibility or
-                View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        decorView.systemUiVisibility = uiVisibility
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            decorView.systemUiVisibility =
-                decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window.setDecorFitsSystemWindows(false)
+        } else {
+            val uiVisibility = decorView.systemUiVisibility or
+                    View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or
+                    View.SYSTEM_UI_FLAG_LAYOUT_STABLE or
+                    View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            decorView.systemUiVisibility = uiVisibility
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                decorView.systemUiVisibility =
+                    decorView.systemUiVisibility or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
+            }
         }
     }
 
@@ -75,12 +83,14 @@ abstract class CommonActivity : AppCompatActivity() {
 
     protected open fun globalBroadcast(intent: Intent?) {}
 
-    protected open suspend fun initViews() {}
+    override suspend fun initViews() {}
 
-    protected open suspend fun loadData() {}
+    override suspend fun initViewModel() {}
+
+    override suspend fun loadData() {}
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(broadcastReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcastReceiver)
     }
 }
