@@ -35,7 +35,6 @@ public class HRetrofit {
     private static HRetrofit mInstance = null;
     private static final File cacheDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "cache");
 
-
     public static HRetrofit getInstance() {
         if (mInstance == null) {
             synchronized (HRetrofit.class) {
@@ -82,7 +81,6 @@ public class HRetrofit {
         return new OkHttpClient.Builder()
                 .callTimeout(5000, TimeUnit.MILLISECONDS)
                 .connectTimeout(1000, TimeUnit.MILLISECONDS)
-                .cookieJar(new HCookieJar())
                 .cache(new Cache(cacheDir, 50 * 1024 * 1024))
                 .readTimeout(2000, TimeUnit.MILLISECONDS)
                 .addNetworkInterceptor(new CacheInterceptor())
@@ -93,23 +91,6 @@ public class HRetrofit {
 
 interface Configurations {
     String domainUrl = "https://api.weibo.com/";
-}
-
-class HCookieJar implements CookieJar {
-
-    @Override
-    public void saveFromResponse(@NotNull HttpUrl url, @NotNull List<Cookie> cookies) {
-        CookieCache[] cookieCaches = CookieCache.toCookieCaches(url, cookies);
-        DBInstance.getAppDatabase().getCookieDao().saveCookies(cookieCaches);
-    }
-
-    @NotNull
-    @Override
-    public List<Cookie> loadForRequest(@NotNull HttpUrl url) {
-        String targetUrl = url.toString();
-        List<CookieCache> cookieCaches = DBInstance.getAppDatabase().getCookieDao().getCookies(targetUrl);
-        return CookieCache.toCookies(cookieCaches);
-    }
 }
 
 class CacheInterceptor implements Interceptor {
@@ -123,17 +104,6 @@ class CacheInterceptor implements Interceptor {
         if (!isNetworkConnected) {
             newBuilder.cacheControl(CacheControl.FORCE_CACHE);
         }
-        try {
-            return chain.proceed(newBuilder.build());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Response.Builder()
-                    .body(ResponseBody.create(null, "{}"))
-                    .code(200)
-                    .protocol(Protocol.H2_PRIOR_KNOWLEDGE)
-                    .request(request.newBuilder().build())
-                    .message(e.getMessage())
-                    .build();
-        }
+        return chain.proceed(newBuilder.build());
     }
 }
