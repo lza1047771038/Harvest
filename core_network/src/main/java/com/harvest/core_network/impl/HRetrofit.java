@@ -6,6 +6,8 @@ import android.os.Looper;
 
 import com.harvest.core_base.database.bean.CookieCache;
 import com.harvest.core_base.database.instance.DBInstance;
+import com.harvest.core_base.interfaces.IContext;
+import com.harvest.core_base.service.ServiceFacade;
 import com.harvest.core_network.factory.ConverterFactory;
 import com.open.core_network.utils.NetworkStatusUtils;
 
@@ -33,7 +35,6 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class HRetrofit {
 
     private static HRetrofit mInstance = null;
-    private static final File cacheDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "cache");
 
     public static HRetrofit getInstance() {
         if (mInstance == null) {
@@ -78,10 +79,13 @@ public class HRetrofit {
     }
 
     private OkHttpClient configClient() {
+        IContext iContext = ServiceFacade.getInstance().get(IContext.class);
+        File cacheDir = iContext.getContext().getExternalCacheDir();
+        String networkCacheDir = cacheDir.getAbsolutePath() + File.separator + "networkCache";
         return new OkHttpClient.Builder()
                 .callTimeout(5000, TimeUnit.MILLISECONDS)
                 .connectTimeout(1000, TimeUnit.MILLISECONDS)
-                .cache(new Cache(cacheDir, 50 * 1024 * 1024))
+                .cache(new Cache(new File(networkCacheDir), 50 * 1024 * 1024))
                 .readTimeout(2000, TimeUnit.MILLISECONDS)
                 .addNetworkInterceptor(new CacheInterceptor())
                 .addInterceptor(new CacheInterceptor())
@@ -90,7 +94,7 @@ public class HRetrofit {
 }
 
 interface Configurations {
-    String domainUrl = "https://api.weibo.com/";
+    String domainUrl = null;
 }
 
 class CacheInterceptor implements Interceptor {

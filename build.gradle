@@ -44,4 +44,5 @@ ext{
     viewModelVersion = "2.3.0-beta01"
     pagingRuntimeVersion = "3.0.0-alpha10"
     flexBoxVersion = "1.1.1"
+    moshiVersion = "1.11.0"
 }

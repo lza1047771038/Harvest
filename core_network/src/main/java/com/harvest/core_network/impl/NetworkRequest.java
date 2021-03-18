@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import com.harvest.core_network.interfaces.ErrorNotifier;
 import com.harvest.core_network.interfaces.JsonNetworkParser;
 import com.harvest.core_network.interfaces.OnPreCheckListener;
+import com.harvest.core_network.interfaces.StringNetworkParser;
 import com.open.core_network.utils.NetworkStatusUtils;
 
 import org.json.JSONObject;
@@ -99,7 +100,7 @@ public class NetworkRequest {
         return this;
     }
 
-    public <T> T executeApi(JsonNetworkParser<T> callback) {
+    public <T> T executeApi(StringNetworkParser<T> callback) {
         if (!doPost && !doGet) {
             doGet();
         }
@@ -117,10 +118,9 @@ public class NetworkRequest {
             final ResponseBody responseBody = response.body();
             if (responseBody != null) {
                 final String responseString = responseBody.string();
-                final JSONObject jsonObject = new JSONObject(responseString);
-                boolean isPreCheckValid = (preCheckListener == null || preCheckListener.isValid(jsonObject));
+                boolean isPreCheckValid = (preCheckListener == null || preCheckListener.isValid(responseString));
                 if (isPreCheckValid) {
-                    return callback.convert(jsonObject);
+                    return callback.parseString(responseString);
                 }
             }
         } catch (Exception e) {
