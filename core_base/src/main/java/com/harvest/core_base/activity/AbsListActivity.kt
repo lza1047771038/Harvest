@@ -14,7 +14,6 @@ abstract class AbsListActivity : CommonActivity() {
     private var recyclerView: RecyclerView? = null
     protected var adapter: RecyclerView.Adapter<*>? = null
 
-
     private val isRefreshing: MutableLiveData<Boolean> by lazy {
         val liveData = MutableLiveData<Boolean>()
         liveData.observe(this@AbsListActivity) {

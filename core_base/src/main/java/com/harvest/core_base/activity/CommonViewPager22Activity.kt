@@ -8,7 +8,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
 
-abstract class BaseViewPager22Activity<M, V : View> : CommonActivity(),
+abstract class CommonViewPager22Activity : CommonActivity(),
     IViewPager2AdapterHelper {
 
     protected var root: View? = null
@@ -52,6 +52,8 @@ abstract class BaseViewPager22Activity<M, V : View> : CommonActivity(),
 
     open fun obtainViewPager(viewPager2: ViewPager2): View? = viewPager2
 
+    open fun transparentStatusBarEnabled():Boolean = false
+
     override suspend fun initViews() {
         val viewPager2 = viewPager2
         if (viewPager2 != null) {
@@ -72,7 +74,6 @@ class ViewPager2Adapter(
 
     override fun createFragment(position: Int): Fragment =
         viewPager2AdapterHelper.getFragment(position)
-
 }
 
 

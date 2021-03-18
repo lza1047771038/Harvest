@@ -7,7 +7,7 @@ abstract class CommonBindingActivity<T : ViewDataBinding> : CommonActivity() {
 
     private var binding: T? = null
 
-    abstract fun initialBinding(): T
+    protected abstract fun initialBinding(): T
 
     protected fun requireBinding(): T = binding!!
 
