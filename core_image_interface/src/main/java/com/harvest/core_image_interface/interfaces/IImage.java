@@ -13,5 +13,11 @@ public interface IImage {
 
     void loadRadius(String url, SimpleDraweeView view, float radius);
 
+    void blur(String url, SimpleDraweeView view);
+
+    void blur(String url, SimpleDraweeView view, int radius);
+
     void load(String url, SimpleDraweeView view, ScalingUtils.ScaleType scaleType);
+
+    void loadAsync(String url);
 }

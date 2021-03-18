@@ -1,7 +1,6 @@
 package com.harvest.core_network.factory
 
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.harvest.core_network.wrapper.ApiResult
 import okhttp3.ResponseBody
 import org.json.JSONObject

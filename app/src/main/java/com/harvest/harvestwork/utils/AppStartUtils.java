@@ -11,6 +11,7 @@ import com.harvest.core_image_interface.interfaces.IImageLoader;
 public class AppStartUtils {
 
     public static void initWithOutPermission() {
+        ServiceFacade.init();
         ServiceFacade.getInstance().put(IImage.class, new ImageImpl());
         ServiceFacade.getInstance().put(IImageLoader.class, new ImageLoaderImpl());
         ServiceFacade.getInstance().put(IContext.class, new ContextResolver());

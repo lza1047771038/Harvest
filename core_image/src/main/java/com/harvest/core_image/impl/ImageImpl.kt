@@ -1,9 +1,14 @@
 package com.harvest.core_image.impl
 
+import android.net.Uri
+import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.drawee.drawable.ScalingUtils
 import com.facebook.drawee.generic.GenericDraweeHierarchyBuilder
 import com.facebook.drawee.generic.RoundingParams
 import com.facebook.drawee.view.SimpleDraweeView
+import com.facebook.imagepipeline.postprocessors.IterativeBoxBlurPostProcessor
+import com.facebook.imagepipeline.request.ImageRequest
+import com.facebook.imagepipeline.request.ImageRequestBuilder
 import com.harvest.core_base.interfaces.IContext
 import com.harvest.core_base.service.ServiceFacade
 import com.harvest.core_image.R
@@ -40,5 +45,24 @@ class ImageImpl : IImage {
 
         view?.hierarchy = hierarchy
         view?.setImageURI(url)
+    }
+
+    override fun blur(url: String?, view: SimpleDraweeView?) {
+        this.blur(url,view,25)
+    }
+
+    override fun blur(url: String?, view: SimpleDraweeView?, radius: Int) {
+        val uri: Uri = Uri.parse(url)
+        val request: ImageRequest = ImageRequestBuilder.newBuilderWithSource(uri)
+            .setPostprocessor(IterativeBoxBlurPostProcessor(5, radius))
+            .build()
+        val controller = Fresco.newDraweeControllerBuilder()
+            .setOldController(view?.controller)
+            .setImageRequest(request)
+            .build()
+        view?.controller = controller
+    }
+
+    override fun loadAsync(url: String?) {
     }
 }
