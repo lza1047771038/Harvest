@@ -1,16 +1,16 @@
-package com.harvest.core_base.activity
+package com.harvest.core_base.fragment
 
+import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.Lifecycle
-import androidx.viewpager2.adapter.FragmentStateAdapter
 import androidx.viewpager2.widget.ViewPager2
+import com.harvest.core_base.activity.IViewPager2AdapterHelper
+import com.harvest.core_base.activity.ViewPager2Adapter
 
-abstract class CommonViewPager22Activity : CommonActivity(),
-    IViewPager2AdapterHelper {
+abstract class CommonViewPager2Fragment : CommonFragment(), IViewPager2AdapterHelper {
 
     protected var root: View? = null
     protected var viewPager2: ViewPager2? = null
@@ -20,14 +20,14 @@ abstract class CommonViewPager22Activity : CommonActivity(),
     private val onPageChangeCallback = object : ViewPager2.OnPageChangeCallback() {
         override fun onPageSelected(position: Int) {
             val newDisplayFragment = getFragment(position)
-            val transaction = supportFragmentManager.beginTransaction()
-            if (newDisplayFragment.fragmentManager == supportFragmentManager) {
+            val transaction = childFragmentManager.beginTransaction()
+            if (newDisplayFragment.fragmentManager == childFragmentManager) {
                 transaction.setMaxLifecycle(newDisplayFragment, Lifecycle.State.RESUMED)
                     .commitNow()
             }
 
             val current = currentFragment
-            if (current != null && current.fragmentManager == supportFragmentManager) {
+            if (current != null && current.fragmentManager == childFragmentManager) {
                 transaction
                     .setMaxLifecycle(current, Lifecycle.State.STARTED).commitNow()
             }
@@ -35,10 +35,14 @@ abstract class CommonViewPager22Activity : CommonActivity(),
         }
     }
 
-    override fun obtainLayoutRootView(): View? {
+    override fun obtainLayoutRootView(
+        layoutInflater: LayoutInflater,
+        parent: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val viewPager2: ViewPager2?
         if (root == null) {
-            viewPager2 = ViewPager2(this)
+            viewPager2 = ViewPager2(requireContext())
             val params = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT
@@ -53,35 +57,29 @@ abstract class CommonViewPager22Activity : CommonActivity(),
 
     open fun obtainViewPager(viewPager2: ViewPager2): View? = viewPager2
 
-    open fun transparentStatusBarEnabled(): Boolean = false
-
     override suspend fun initViews() {
         super.initViews()
         val viewPager2 = viewPager2
         if (viewPager2 != null) {
-            a2Adapter = ViewPager2Adapter(this, supportFragmentManager, lifecycle)
+            a2Adapter = ViewPager2Adapter(this, childFragmentManager, lifecycle)
             viewPager2.adapter = a2Adapter
             viewPager2.currentItem = currentPosition()
         }
     }
-}
 
-class ViewPager2Adapter(
-    private val viewPager2AdapterHelper: IViewPager2AdapterHelper,
-    private val fragmentManager: FragmentManager,
-    private val lifecycle: Lifecycle
-) :
-    FragmentStateAdapter(fragmentManager, lifecycle) {
+    override fun onDestroyView() {
+        super.onDestroyView()
+        viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
+        root?.let {
+            if (it.parent is ViewGroup) {
+                (it.parent as ViewGroup).removeView(it)
+            }
+        }
+        currentFragment = null
+    }
 
-    override fun getItemCount(): Int = viewPager2AdapterHelper.getItemCount()
-
-    override fun createFragment(position: Int): Fragment =
-        viewPager2AdapterHelper.getFragment(position)
-}
-
-
-interface IViewPager2AdapterHelper {
-    fun getItemCount(): Int
-    fun getFragment(position: Int): Fragment
-    fun currentPosition(): Int
+    override fun onDestroy() {
+        super.onDestroy()
+        root = null
+    }
 }

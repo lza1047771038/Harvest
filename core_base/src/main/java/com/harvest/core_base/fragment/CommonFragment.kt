@@ -8,14 +8,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.annotation.CallSuper
 import androidx.fragment.app.Fragment
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.harvest.core_base.coroutine.launch
+import com.harvest.core_base.interfaces.IFragmentWrapper
 
-abstract class CommonFragment : Fragment() {
+abstract class CommonFragment : Fragment(), IFragmentWrapper {
 
-    private var firstIn = true
-
-    private var layoutResLoaded: Boolean = false
+    protected var onDataLoaded = false
 
     private val broadcastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -23,9 +24,9 @@ abstract class CommonFragment : Fragment() {
         }
     }
 
-    protected open fun getLayoutId(): Int = 0
+    override fun obtainLayoutId(): Int = 0
 
-    protected open fun getRootView(
+    override fun obtainLayoutRootView(
         layoutInflater: LayoutInflater,
         parent: ViewGroup?,
         savedInstanceState: Bundle?
@@ -37,49 +38,65 @@ abstract class CommonFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         var view: View? = null
-        val layoutId = getLayoutId()
+        val layoutId = obtainLayoutId()
+        var layoutResLoaded = false
         if (layoutId != 0) {
             view = inflater.inflate(layoutId, container, false)
             layoutResLoaded = true
         }
         if (!layoutResLoaded) {
-            view = getRootView(inflater, container, savedInstanceState)
-            layoutResLoaded = true
+            view = obtainLayoutRootView(inflater, container, savedInstanceState)
         }
         return view
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        onApplyTheme()
 
         val intentFilter = IntentFilter()
         initIntentFilter(intentFilter)
-        activity?.registerReceiver(broadcastReceiver, intentFilter)
 
+        activity?.let {
+            LocalBroadcastManager.getInstance(it).registerReceiver(broadcastReceiver, intentFilter)
+        }
 
-        super.onViewCreated(view, savedInstanceState)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        if (firstIn) {
-            launch {
-                loadInitial()
+        launch {
+            initViews()
+            initViewModel()
+            if (!onDataLoaded) {
                 loadData()
+                onDataLoaded = true
             }
-            firstIn = false
         }
     }
+
+    override fun onApplyTheme() {}
 
     protected open fun initIntentFilter(filter: IntentFilter) {}
 
     protected open fun globalBroadcast(intent: Intent?) {}
 
-    protected open suspend fun loadInitial() {}
+    @CallSuper
+    override suspend fun initViews() {
+    }
 
-    protected open suspend fun loadData() {}
+    @CallSuper
+    override suspend fun initViewModel() {
+    }
+
+    @CallSuper
+    override suspend fun loadData() {
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        activity?.let {
+            LocalBroadcastManager.getInstance(it).unregisterReceiver(broadcastReceiver)
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
-        activity?.unregisterReceiver(broadcastReceiver)
+        onDataLoaded = false
     }
 }

@@ -1,4 +1,4 @@
-package com.open.core_base.fragment
+package com.harvest.core_base.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -6,12 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.ViewDataBinding
-import com.harvest.core_base.coroutine.launch
-import com.harvest.core_base.fragment.CommonFragment
 import com.open.core_base.utils.system.StatusBarUtil
 
 abstract class CommonBindingFragment<B : ViewDataBinding> : CommonFragment() {
-    private var firstInit: Boolean = true
 
     private var binding: B? = null
 
@@ -25,35 +22,31 @@ abstract class CommonBindingFragment<B : ViewDataBinding> : CommonFragment() {
 
     abstract fun isLightStatusBar(): Boolean
 
-    override fun getRootView(
+    override fun obtainLayoutRootView(
         layoutInflater: LayoutInflater,
         parent: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = initialBinding(layoutInflater, parent, savedInstanceState)
-        binding?.lifecycleOwner = this
+        if(binding == null){
+            binding = initialBinding(layoutInflater, parent, savedInstanceState)
+            binding?.lifecycleOwner = this
+        }
         return binding?.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-    }
-
-    override fun onStart() {
-        if (firstInit) {
-            launch {
-                initViewModel()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        binding?.root?.let {
+            if (it.parent is ViewGroup) {
+                (it.parent as ViewGroup).removeView(it)
             }
-            firstInit = false
         }
-        super.onStart()
+        binding?.unbind()
+        binding = null
     }
 
-    private fun preConfig() {
-        val activity = activity as AppCompatActivity?
-        if (activity != null) {
-            StatusBarUtil.setStatusBarDarkTheme(activity, isLightStatusBar())
-        }
+    override fun onDestroy() {
+        super.onDestroy()
+        binding = null
     }
-
-    protected open suspend fun initViewModel() {}
 }

@@ -8,20 +8,22 @@ import android.widget.FrameLayout
 import androidx.lifecycle.MutableLiveData
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.harvest.core_base.databinding.LayoutBaseRecyclerViewBinding
 
-abstract class AbsListFragment : CommonFragment() {
+abstract class AbsListFragment : CommonBindingFragment<LayoutBaseRecyclerViewBinding>() {
 
-    private var recyclerView: RecyclerView? = null
-    private var swipeRefreshLayout: SwipeRefreshLayout? = null
     protected var adapter: RecyclerView.Adapter<*>? = null
 
-    private val isRefreshing: MutableLiveData<Boolean> by lazy {
-        val liveData = MutableLiveData<Boolean>()
-        liveData.observe(this@AbsListFragment) {
-            swipeRefreshLayout?.isRefreshing = it
-        }
-        liveData
-    }
+    private val isRefreshing: MutableLiveData<Boolean> by lazy { MutableLiveData() }
+
+    override fun initialBinding(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): LayoutBaseRecyclerViewBinding =
+        LayoutBaseRecyclerViewBinding.inflate(inflater, container, false)
+
+    override fun isLightStatusBar(): Boolean = false
 
     protected open fun enableRefresh(): Boolean = true
 
@@ -31,48 +33,26 @@ abstract class AbsListFragment : CommonFragment() {
         this.isRefreshing.postValue(isRefreshing)
     }
 
-    protected open fun adjustRootView(rootView: ViewGroup){}
-
-    override fun getRootView(
-        layoutInflater: LayoutInflater,
-        parent: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val rootView = FrameLayout(requireContext())
-        rootView.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.MATCH_PARENT
-        )
-
-        swipeRefreshLayout = SwipeRefreshLayout(requireContext())
-        swipeRefreshLayout?.layoutParams = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-        swipeRefreshLayout?.isEnabled = enableRefresh()
-        swipeRefreshLayout?.setOnRefreshListener(getRefreshListener())
-
-        recyclerView = RecyclerView(requireContext())
-        recyclerView?.layoutParams = ViewGroup.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-
-        swipeRefreshLayout?.addView(recyclerView)
-        rootView.addView(swipeRefreshLayout)
-        adjustRootView(rootView)
-        return rootView
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        initRecyclerView(recyclerView!!)
-        adapter = initAdapter()
-        recyclerView?.adapter = adapter
+    override suspend fun initViews() {
+        super.initViews()
+        isRefreshing.observe(this@AbsListFragment) {
+            requireBinding().swipeRefreshLayout.isRefreshing = it
+        }
+        requireBinding().run {
+            swipeRefreshLayout.isEnabled = enableRefresh()
+            swipeRefreshLayout.setOnRefreshListener(getRefreshListener())
+            initRecyclerView(recyclerView)
+            adapter = initAdapter()
+            recyclerView.adapter = adapter
+        }
     }
 
     protected abstract fun initRecyclerView(recyclerView: RecyclerView)
 
     protected abstract fun initAdapter(): RecyclerView.Adapter<*>
+
+    override fun onDestroyView() {
+        requireBinding().recyclerView.adapter = null
+        super.onDestroyView()
+    }
 }

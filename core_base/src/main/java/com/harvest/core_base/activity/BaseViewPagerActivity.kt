@@ -28,6 +28,7 @@ abstract class BaseViewPagerActivity<M, V : View> : CommonActivity(),
     }
 
     override suspend fun initViews() {
+        super.initViews()
         val rootView = root
         if (rootView != null && rootView is ViewPager) {
             adapter = ViewPagerAdapter(this)
