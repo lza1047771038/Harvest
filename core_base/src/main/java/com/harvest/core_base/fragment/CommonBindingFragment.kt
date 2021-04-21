@@ -27,26 +27,14 @@ abstract class CommonBindingFragment<B : ViewDataBinding> : CommonFragment() {
         parent: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        if(binding == null){
-            binding = initialBinding(layoutInflater, parent, savedInstanceState)
-            binding?.lifecycleOwner = this
-        }
+        binding = initialBinding(layoutInflater, parent, savedInstanceState)
+        binding?.lifecycleOwner = this
         return binding?.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        binding?.root?.let {
-            if (it.parent is ViewGroup) {
-                (it.parent as ViewGroup).removeView(it)
-            }
-        }
         binding?.unbind()
-        binding = null
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
         binding = null
     }
 }

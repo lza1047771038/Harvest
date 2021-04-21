@@ -70,12 +70,10 @@ abstract class CommonViewPager2Fragment : CommonFragment(), IViewPager2AdapterHe
     override fun onDestroyView() {
         super.onDestroyView()
         viewPager2?.unregisterOnPageChangeCallback(onPageChangeCallback)
-        root?.let {
-            if (it.parent is ViewGroup) {
-                (it.parent as ViewGroup).removeView(it)
-            }
-        }
         currentFragment = null
+        viewPager2 = null
+        a2Adapter = null
+        root = null
     }
 
     override fun onDestroy() {

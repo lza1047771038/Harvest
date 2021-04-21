@@ -36,6 +36,12 @@ abstract class BaseViewPagerActivity<M, V : View> : CommonActivity(),
             rootView.currentItem = currentPosition()
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        root = null
+        adapter = null
+    }
 }
 
 class ViewPagerAdapter<M, V : View>(private val viewPagerHelper: IViewPagerAdapterHelper<M, V>) :

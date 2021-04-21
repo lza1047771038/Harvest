@@ -13,20 +13,14 @@ abstract class CommonBindingActivity<T : ViewDataBinding> : CommonActivity() {
     protected fun requireBinding(): T = binding!!
 
     override fun obtainLayoutRootView(): View? {
-        if (binding == null) {
-            binding = initialBinding()
-            binding?.lifecycleOwner = this
-        }
-        binding?.root?.let {
-            if (it.parent is ViewGroup) {
-                (it.parent as ViewGroup).removeView(it)
-            }
-        }
+        binding = initialBinding()
+        binding?.lifecycleOwner = this
         return binding?.root
     }
 
     override fun onDestroy() {
         super.onDestroy()
         binding?.unbind()
+        binding = null
     }
 }
