@@ -1,4 +1,4 @@
-package com.door.core_base.fragment
+package com.harvest.core_base.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,8 +7,8 @@ import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.databinding.ViewDataBinding
 import androidx.fragment.app.Fragment
-import com.door.core_base.coroutine.launch
-import com.door.core_base.interfaces.IFragmentWrapper
+import com.harvest.core_base.coroutine.launch
+import com.harvest.core_base.interfaces.IFragmentWrapper
 
 abstract class CommonLazyBindingFragment<B : ViewDataBinding> : Fragment(), IFragmentWrapper {
 
