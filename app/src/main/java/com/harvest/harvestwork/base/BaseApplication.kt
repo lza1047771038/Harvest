@@ -7,6 +7,6 @@ class BaseApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        AppStartUtils.initWithOutPermission()
+        AppStartUtils.initWithOutPermission(this)
     }
 }

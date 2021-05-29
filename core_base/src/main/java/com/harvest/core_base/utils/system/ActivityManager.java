@@ -69,9 +69,7 @@ public class ActivityManager {
     }
 
     public void removeActivity(Activity activity) {
-        if (!activityStack.isEmpty()) {
-            activityStack.pop();
-        }
+        activityStack.remove(activity);
     }
 
     /**

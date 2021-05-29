@@ -3,6 +3,7 @@ package com.harvest.core_base.database.instance
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.migration.Migration
 import com.harvest.core_base.database.bean.CookieCache
 import com.harvest.core_base.database.dao.ICookieDao
 import com.harvest.core_base.interfaces.IContext
@@ -13,20 +14,30 @@ class DBInstance {
 
         @JvmStatic
         @Synchronized
-        fun <T> getInstance(clazz: Class<T>, dbName: String): T where T : RoomDatabase {
+        fun <T> getInstance(
+            clazz: Class<T>,
+            dbName: String,
+            vararg migrations: Migration
+        ): T? where T : RoomDatabase? {
             var dbService = ServiceFacade.getInstance().get(clazz)
             if (dbService == null) {
                 val context =
-                    ServiceFacade.getInstance().get(IContext::class.java).applicationContext
-                dbService = Room.databaseBuilder(context, clazz, dbName)
-                    .build()
-                ServiceFacade.getInstance().put(clazz, dbService)
+                    ServiceFacade.getInstance().get(IContext::class.java)?.applicationContext
+                if (context != null) {
+                    dbService = Room.databaseBuilder(context, clazz, dbName).let {
+                        if (migrations.isNotEmpty()) {
+                            it.addMigrations(*migrations)
+                        }
+                        it
+                    }.allowMainThreadQueries()
+                        .build()
+                }
             }
             return dbService
         }
 
         @JvmStatic
-        fun getAppDatabase(): CommonDatabase {
+        fun getAppDatabase(): CommonDatabase? {
             return getInstance(CommonDatabase::class.java, CommonDatabase.dbName)
         }
     }

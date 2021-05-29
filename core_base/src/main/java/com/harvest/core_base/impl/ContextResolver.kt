@@ -2,13 +2,10 @@ package com.harvest.core_base.impl
 
 import android.app.Application
 import android.content.Context
-import com.harvest.core_base.provider.ContextProvider
 import com.harvest.core_base.interfaces.IContext
 
-class ContextResolver : IContext {
-    companion object {
-        private val mContext: Context by lazy { ContextProvider.mContext!! }
-    }
+class ContextResolver(context: Context) : IContext {
+    private val mContext: Context = context
 
     override fun getContext(): Context = mContext
 
